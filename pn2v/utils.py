@@ -9,6 +9,8 @@ import torch.nn as nn
 import sys
 import torchvision
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 def printNow(string,a="",b="",c="",d="",e="",f=""):
     print(string,a,b,c,d,e,f)
@@ -66,4 +68,52 @@ def fastShuffle(series, num):
     for i in range(num):
         series = series[np.random.permutation(length),:]
     return series
+
+
+def plotProbabilityDistribution(signalBinIndex, histogram, gaussianMixtureNoiseModel, min_signal, max_signal, n_bin, device):
+    """Plots probability distribution P(x|s) for a certain ground truth signal. 
+       Predictions from both Histogram and GMM-based Noise models are displayed for comparison.
+        Parameters
+        ----------
+        signalBinIndex: int
+            index of signal bin. Values go from 0 to number of bins (`n_bin`).
+        histogram: numpy array
+            A square numpy array of size `nbin` times `n_bin`.
+        gaussianMixtureNoiseModel: GaussianMixtureNoiseModel
+            Object containing trained parameters.
+        min_signal: float
+            Lowest pixel intensity present in the actual sample which needs to be denoised.
+        max_signal: float
+            Highest pixel intensity present in the actual sample which needs to be denoised.
+        n_bin: int
+            Number of Bins.
+        device: GPU device
+        """
+    histBinSize=(max_signal-min_signal)/n_bin
+    querySignal_numpy= (signalBinIndex/float(n_bin)*(max_signal-min_signal)+min_signal)
+    querySignal_numpy +=histBinSize/2
+    querySignal_torch = torch.from_numpy(np.array(querySignal_numpy)).float().to(device)
+    
+    queryObservations_numpy=np.arange(min_signal, max_signal, histBinSize)
+    queryObservations_numpy+=histBinSize/2
+    queryObservations = torch.from_numpy(queryObservations_numpy).float().to(device)
+    pTorch=gaussianMixtureNoiseModel.likelihood(queryObservations, querySignal_torch)
+    pNumpy=pTorch.cpu().detach().numpy()
+    
+    plt.figure(figsize=(12, 5))
+    
+    plt.subplot(1, 2, 1)
+    plt.xlabel('Observation Bin')
+    plt.ylabel('Signal Bin')
+    plt.imshow(histogram**0.25, cmap='gray')
+    plt.axhline(y=signalBinIndex+0.5, linewidth=5, color='blue', alpha=0.5)
+    
+    plt.subplot(1, 2, 2)
+    plt.plot(queryObservations_numpy, histogram[signalBinIndex, :]/histBinSize, label='GT Hist: bin ='+str(signalBinIndex), color='blue', linewidth=2)
+    plt.plot(queryObservations_numpy, pNumpy, label='GMM : '+' signal = '+str(np.round(querySignal_numpy,2)), color='red',linewidth=2)
+    plt.xlabel('Observations (x) for signal s = ' + str(querySignal_numpy))
+    plt.ylabel('Probability Density')
+    plt.title("Probability Distribution P(x|s) at signal =" + str(querySignal_numpy))
+    plt.legend()
+
     

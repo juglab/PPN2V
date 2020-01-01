@@ -1,6 +1,5 @@
 import torch
 dtype = torch.float
-device = torch.device("cuda:0") 
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
@@ -13,46 +12,75 @@ import pn2v.histNoiseModel
 
 class GaussianMixtureNoiseModel:
     """The GaussianMixtureNoiseModel class describes a noise model which is parameterized as a mixture of gaussians.
+       If you would like to initialize a new object from scratch, then set `params`= None and specify the other parameters as keyword arguments. If you are instead loading a model, use only `params`.
+
+
             Parameters
             ----------
-            min_signal : float
-                Minimum signal intensity expected in the image.
-            max_signal : float
-                Maximum signal intensity expected in the image.
-            path: string
-                Path to the directory where the trained noise model (*.npz) is saved in the `train` method.
-            weight : array
-                A [3*n_gaussian, n_coeff] sized array containing the values of the weights describing the noise model.
-                Each gaussian contributes three parameters (mean, standard deviation and weight), hence the number of rows in `weight` are 3*n_gaussian. Default = None.
-                If ``None``, the weight array is initialized using the `min_signal` and `max_signal` parameters.
-            n_gaussian: int
-                Number of gaussians. Default = 3
-            n_coeff: int
-                Number of coefficients to describe the functional relationship between gaussian parameters and the signal.
-                2 implies a linear relationship, 3 implies a quadratic relationship and so on. Default = 2.
-            min_sigma: int
-                All values of sigma (`standard deviation`) below min_sigma are clamped to become equal to min_sigma. Default = 50.
+            **kwargs: keyworded, variable-length argument dictionary.
+            Arguments include:
+                min_signal : float
+                    Minimum signal intensity expected in the image.
+                max_signal : float
+                    Maximum signal intensity expected in the image.
+                path: string
+                    Path to the directory where the trained noise model (*.npz) is saved in the `train` method.
+                weight : array
+                    A [3*n_gaussian, n_coeff] sized array containing the values of the weights describing the noise model.
+                    Each gaussian contributes three parameters (mean, standard deviation and weight), hence the number of rows in `weight` are 3*n_gaussian.
+                    If `weight=None`, the weight array is initialized using the `min_signal` and `max_signal` parameters.
+                n_gaussian: int
+                    Number of gaussians.
+                n_coeff: int
+                    Number of coefficients to describe the functional relationship between gaussian parameters and the signal.
+                    2 implies a linear relationship, 3 implies a quadratic relationship and so on.
+                device: device
+                    GPU device.
+                min_sigma: int
+                    All values of sigma (`standard deviation`) below min_sigma are clamped to become equal to min_sigma.
+                params: dictionary
+                    Use `params` if one wishes to load a model with trained weights. 
+                    While initializing a new object of the class `GaussianMixtureNoiseModel` from scratch, set this to `None`.
+
             Example
             -------
-            >>> model = GaussianMixtureNoiseModel(min_signal = 484.85, max_signal = 3235.01, path='../../models/', weight = None, n_gaussian = 3, n_coeff = 2, min_sigma = 50)
+            >>> model = GaussianMixtureNoiseModel(min_signal = 484.85, max_signal = 3235.01, path='../../models/', weight = None, n_gaussian = 3, n_coeff = 2, min_sigma = 50, device = torch.device("cuda:0"))
     """
+
+    def __init__(self, **kwargs):
+        if(kwargs.get('params') is None):
+            weight=kwargs.get('weight')
+            n_gaussian=kwargs.get('n_gaussian')
+            n_coeff=kwargs.get('n_coeff')
+            min_signal=kwargs.get('min_signal')
+            max_signal=kwargs.get('max_signal')
+            self.device=kwargs.get('device')
+            self.path=kwargs.get('path')
+            self.min_sigma=kwargs.get('min_sigma')
+            if (weight is None):
+                weight = np.random.randn(n_gaussian * 3, n_coeff)
+                weight[n_gaussian:2 * n_gaussian, 1] = np.log(max_signal - min_signal)
+                weight = torch.from_numpy(weight.astype(np.float32)).float().to(self.device)
+                weight.requires_grad = True
+            self.n_gaussian = weight.shape[0] // 3
+            self.n_coeff = weight.shape[1]
+            self.weight = weight
+            self.min_signal = torch.Tensor([min_signal]).to(self.device)
+            self.max_signal = torch.Tensor([max_signal]).to(self.device)
+            self.tol = torch.Tensor([1e-10]).to(self.device)
+        else:
+            params=kwargs.get('params')
+            self.min_signal=params['min_signal'][0]
+            self.max_signal=params['max_signal'][0]
+            self.weight=torch.Tensor(params['trained_weight'])
+            self.device=kwargs.get('device')
+            self.min_sigma=np.asscalar(params['min_sigma'])
+            self.n_gaussian=self.weight.shape[0]//3
+            self.n_coeff=self.weight.shape[1]
+            self.tol=torch.Tensor([1e-10]).to(self.device)
+
     
-    def __init__(self, min_signal, max_signal, path, weight, n_gaussian = 3, n_coeff = 2, min_sigma = 50):
-        if(weight is None):
-            weight = np.random.randn(n_gaussian*3, n_coeff)
-            weight[n_gaussian:2*n_gaussian, 1]=np.log(max_signal-min_signal)
-            weight = torch.from_numpy(weight.astype(np.float32)).float().to(device)
-            weight.requires_grad=True 
-        self.n_gaussian = weight.shape[0]//3
-        self.weight = weight
-        self.n_coeff = n_coeff
-        self.min_signal=torch.Tensor([min_signal]).to(device)
-        self.max_signal=torch.Tensor([max_signal]).to(device)
-        self.min_signal_scal=min_signal
-        self.max_signal_scal=max_signal
-        self.tol=torch.Tensor([1e-10]).to(device)
-        self.path=path
-        self.min_sigma=min_sigma
+
 
     def polynomialRegressor(self, weightParams, signals):
         """Combines `weightParams` and signal `signals` to regress for the gaussian parameter values.
@@ -205,7 +233,8 @@ class GaussianMixtureNoiseModel:
         return pn2v.utils.fastShuffle(sig_obs_pairs, 2)
         
   
-    def train(self, signal, observation, learning_rate=1e-1, batchSize=250000, n_epochs=2000, name= 'trained_GMMNoiseModel.npz', lowerClip=0, upperClip=100):
+
+    def train(self, signal, observation, learning_rate=1e-1, batchSize=250000, n_epochs=2000, name= 'GMMNoiseModel.npz', lowerClip=0, upperClip=100):
         """Training to learn the noise model from signal - observation pairs.
 
                 Parameters
@@ -221,7 +250,9 @@ class GaussianMixtureNoiseModel:
                 n_epochs: int
                     Number of epochs. Default = 2000.
                 name: string
-                    Model name. Default is `trained_GMMNoiseModel`. This model after being trained is saved at the location `path`.
+
+                    Model name. Default is `GMMNoiseModel`. This model after being trained is saved at the location `path`.
+
                 lowerClip : int
                     Lower percentile for clipping. Default is 0.
                 upperClip : int
@@ -242,8 +273,8 @@ class GaussianMixtureNoiseModel:
             batch_vectors = sig_obs_pairs[counter*batchSize:(counter+1)*batchSize, :]
             observations = batch_vectors[:,1].astype(np.float32)
             signals = batch_vectors[:,0].astype(np.float32)
-            observations = torch.from_numpy(observations.astype(np.float32)).float().to(device)
-            signals = torch.from_numpy(signals).float().to(device)
+            observations = torch.from_numpy(observations.astype(np.float32)).float().to(self.device)
+            signals = torch.from_numpy(signals).float().to(self.device)
             p = self.likelihood(observations, signals)
             loss=torch.mean(-torch.log(p))
             jointLoss=jointLoss+loss
@@ -251,13 +282,22 @@ class GaussianMixtureNoiseModel:
             if t%100==0:
                 print(t, jointLoss.item())
                 
-            if t%(int(n_epochs*0.5))==0:
+
+            if (t%(int(n_epochs*0.5))==0):
                 trained_weight = self.weight.cpu().detach().numpy()
                 min_signal = self.min_signal.cpu().detach().numpy()
                 max_signal = self.max_signal.cpu().detach().numpy()
-                np.savez(self.path+name, trained_weight=trained_weight, min_signal = min_signal, max_signal = max_signal)
+                np.savez(self.path+name, trained_weight=trained_weight, min_signal = min_signal, max_signal = max_signal, min_sigma = self.min_sigma)
+
+                
+            
 
             optimizer.zero_grad()
             jointLoss.backward()
             optimizer.step()
             counter+=1
+
+        print("===================\n")    
+        print("The trained parameters (" + name + ") is saved at location: "+ self.path)
+
+
