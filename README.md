@@ -5,7 +5,7 @@ Created by *Mangal Prakash*, *Manan Lalit*, *Pavel Tomancak*, *Alexander Krull* 
  
 
 ### Introduction
-This repository hosts the version of the code used for the **[publication](https://arxiv.org/abs/1911.12291)** **Fully Unsupervised Probabilistic Noise2Void** (accepted at IEEE Symposium for Biomedical Imaging (ISBI) 2020). For a short summary of the main attributes of the publication, please check out the **[project webpage](https://juglab.github.io/PPN2V_RC)**. 
+This repository hosts the version of the code used for the **[publication](https://arxiv.org/abs/1911.12291)** **Fully Unsupervised Probabilistic Noise2Void** (accepted at IEEE Symposium for Biomedical Imaging (ISBI) 2020). For a short summary of the main attributes of the publication, please check out the **[project webpage](https://juglab.github.io/PPN2V)**. 
 
 We refer to the techniques elaborated in the publication, here as **PPN2V**, which stands for **`Parametric Probabilistic Noise2Void`**. `PPN2V` extends the formulation of Probabilistic Noise2Void (`PN2V`), the corresponding publication for which is available [here](https://arxiv.org/abs/1906.00651). 
 
