@@ -8,13 +8,15 @@ import matplotlib.pyplot as plt, numpy as np, pickle
 from scipy.stats import norm
 from tifffile import imread
 import sys
-sys.path.append('../')
+sys.path.append('./ppn2v/')
+sys.path.append('../ppn2v/')
+sys.path.append('../../ppn2v/')
 from pn2v import *
 import pn2v.gaussianMixtureNoiseModel
 import pn2v.histNoiseModel
 from pn2v.utils import *
 import argparse
-
+import glob
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("--outPath", help="The path to your training data")
@@ -24,7 +26,7 @@ parser.add_argument("--observation", help="The path to your noisy observation")
 parser.add_argument("--n_gaussian", help="Number of gaussians to use for Gaussian Mixture Model", default=3, type=int)
 parser.add_argument("--n_coeff", help="No. of polynomial coefficients for parameterizing the mean, standard deviation and weight of Gaussian components", default=2, type=int)
 
-parser.add_argument("--minSigma", help="The minimum allowed standatd deviation a gaussian component can have.", default=1.0, type=float)
+parser.add_argument("--minSigma", help="The minimum allowed standatd deviation a gaussian component can have.", default=2.0, type=float)
 parser.add_argument("--minSignalPrec", help="Signals below this percentile will be disregarded", default=0.5, type=float)
 parser.add_argument("--maxSignalPrec", help="Signals above this percentile will be disregarded", default=99.5, type=float)
 
@@ -45,8 +47,36 @@ print(args)
 n_gaussian = args.n_gaussian # Number of gaussians to use for Gaussian Mixture Model
 n_coeff = args.n_coeff # No. of polynomial coefficients for parameterizing the mean, standard deviation and weight of Gaussian components.
 
-observation= imread(str(args.observation)) # Load the appropriate observation data
-signal= imread(str(args.signal)) # Load the appropriate signal data
+
+files=sorted(glob.glob(str(args.observation)))
+# Load the training data
+data=[]
+for f in files:
+    data.append(imread(f).astype(np.float32))
+    print('loading',f)
+
+observation = np.array(data)
+
+if len(observation.shape)==4:
+    observation.shape=(observation.shape[0]*observation.shape[1],observation.shape[2],observation.shape[3])
+print(observation.shape)
+
+
+
+
+files=sorted(glob.glob(str(args.signal)))
+# Load the training data
+data=[]
+for f in files:
+    data.append(imread(f).astype(np.float32))
+    print('loading',f)
+
+signal = np.array(data)
+
+if len(signal.shape)==4:
+    signal.shape=(signal.shape[0]*signal.shape[1],signal.shape[2],signal.shape[3])
+print(signal.shape)
+
 
 nameGMMNoiseModel = 'GMMNoiseModel_'+str(args.name)+'_'+str(n_gaussian)+'_'+str(n_coeff)
 

@@ -3,6 +3,7 @@
 import os
 import sys
 import argparse
+sys.path.append('../ppn2v/')
 sys.path.append('../')
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
