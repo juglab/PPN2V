@@ -1,8 +1,7 @@
 ## Fully Unsupervised Probabilistic Noise2Void
 Created by *Mangal Prakash*, *Manan Lalit*, *Pavel Tomancak*, *Alexander Krull* and *Florian Jug* from Max Planck Institute of Molecular Cell Biology and Genetics (**[MPI-CBG](https://www.mpi-cbg.de/home/)**) and Center for Systems Biology (**[CSBD](https://www.csbdresden.de/)**) in Dresden, Germany .
 
-![teaserFigure](https://github.com/juglab/PPN2V_Working/blob/master/figures/ISBITeaser.png "Figure 1 taken from publication")
- 
+![teaserFigure]( https://juglab.github.io/PPN2V/resources/images/teaser.png "Figure 1 taken from publication")
 
 ### Introduction
 This repository hosts the version of the code used for the **[publication](https://arxiv.org/abs/1911.12291)** **Fully Unsupervised Probabilistic Noise2Void** (accepted at IEEE Symposium for Biomedical Imaging (ISBI) 2020). For a short summary of the main attributes of the publication, please check out the **[project webpage](https://juglab.github.io/PPN2V)**. 
