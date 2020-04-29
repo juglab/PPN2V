@@ -20,12 +20,14 @@ We hope to soon merge this repository with the existing repository for `PN2V`, w
 ### Citation
 If you find our work useful in your research, please consider citing:
 
-	@article{2019ppn2v,
-	  title={Fully Unsupervised Probabilistic Noise2Void},
-	  author={Prakash, Mangal and Lalit, Manan and Tomancak, Pavel and Krull, Alexander and Jug, Florian},
-	  journal={arXiv preprint arXiv:1911.12291},
-	  year={2019}
-	}
+```bibtex
+@article{2019ppn2v,
+  title={Fully Unsupervised Probabilistic Noise2Void},
+  author={Prakash, Mangal and Lalit, Manan and Tomancak, Pavel and Krull, Alexander and Jug, Florian},
+  journal={arXiv preprint arXiv:1911.12291},
+  year={2019}
+}
+```
 
 ### Dependencies 
 We have tested this implementation using `pytorch` version 1.1.0 and `cudatoolkit` version 9.0. 
