@@ -39,16 +39,16 @@ Look in the `examples` directory and try out one (or all) of the three sets of n
 
 #### Calibration Mode (equivalent to PN2V GMM and PN2V in publication) 
 Run
-* PN2V/1a_CreateNoiseModel_Calibration.ipynb 
-* PN2V/2_ProbabilisticNoise2VoidTraining.ipynb
-* PN2V/3_ProbabilisticNoise2VoidPrediction.ipynb
+* `PN2V/1a_CreateNoiseModel_Calibration.ipynb` 
+* `PN2V/2_ProbabilisticNoise2VoidTraining.ipynb`
+* `PN2V/3_ProbabilisticNoise2VoidPrediction.ipynb`
 
 
 #### Bootstrap Mode (equivalent to Boot. GMM and Boot. Hist. in publication)
 Run 
-* N2V/1_N2VTraining.ipynb
-* N2V/2_N2VPrediction.ipynb
-* PN2V/1b_CreateNoiseModel_Bootstrap.ipynb 
-* PN2V/2_ProbabilisticNoise2VoidTraining.ipynb
-* PN2V/3_ProbabilisticNoise2VoidPrediction.ipynb
+* `N2V/1_N2VTraining.ipynb`
+* `N2V/2_N2VPrediction.ipynb`
+* `PN2V/1b_CreateNoiseModel_Bootstrap.ipynb` 
+* `PN2V/2_ProbabilisticNoise2VoidTraining.ipynb`
+* `PN2V/3_ProbabilisticNoise2VoidPrediction.ipynb`
 
