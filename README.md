@@ -1,8 +1,7 @@
 ## Fully Unsupervised Probabilistic Noise2Void
 Created by *Mangal Prakash*, *Manan Lalit*, *Pavel Tomancak*, *Alexander Krull* and *Florian Jug* from Max Planck Institute of Molecular Cell Biology and Genetics (**[MPI-CBG](https://www.mpi-cbg.de/home/)**) and Center for Systems Biology (**[CSBD](https://www.csbdresden.de/)**) in Dresden, Germany .
 
-![teaserFigure](https://github.com/juglab/PPN2V_Working/blob/master/figures/ISBITeaser.png "Figure 1 taken from publication")
- 
+![teaserFigure]( https://juglab.github.io/PPN2V/resources/images/teaser.png "Figure 1 taken from publication")
 
 ### Introduction
 This repository hosts the version of the code used for the **[publication](https://arxiv.org/abs/1911.12291)** **Fully Unsupervised Probabilistic Noise2Void** (accepted at IEEE Symposium for Biomedical Imaging (ISBI) 2020). For a short summary of the main attributes of the publication, please check out the **[project webpage](https://juglab.github.io/PPN2V)**. 
@@ -20,12 +19,14 @@ We hope to soon merge this repository with the existing repository for `PN2V`, w
 ### Citation
 If you find our work useful in your research, please consider citing:
 
-	@article{2019ppn2v,
-	  title={Fully Unsupervised Probabilistic Noise2Void},
-	  author={Prakash, Mangal and Lalit, Manan and Tomancak, Pavel and Krull, Alexander and Jug, Florian},
-	  journal={arXiv preprint arXiv:1911.12291},
-	  year={2019}
-	}
+```bibtex
+@article{2019ppn2v,
+  title={Fully Unsupervised Probabilistic Noise2Void},
+  author={Prakash, Mangal and Lalit, Manan and Tomancak, Pavel and Krull, Alexander and Jug, Florian},
+  journal={arXiv preprint arXiv:1911.12291},
+  year={2019}
+}
+```
 
 ### Dependencies 
 We have tested this implementation using `pytorch` version 1.1.0 and `cudatoolkit` version 9.0. 
@@ -37,16 +38,16 @@ Look in the `examples` directory and try out one (or all) of the three sets of n
 
 #### Calibration Mode (equivalent to PN2V GMM and PN2V in publication) 
 Run
-* PN2V/1a_CreateNoiseModel_Calibration.ipynb 
-* PN2V/2_ProbabilisticNoise2VoidTraining.ipynb
-* PN2V/3_ProbabilisticNoise2VoidPrediction.ipynb
+* `PN2V/1a_CreateNoiseModel_Calibration.ipynb` 
+* `PN2V/2_ProbabilisticNoise2VoidTraining.ipynb`
+* `PN2V/3_ProbabilisticNoise2VoidPrediction.ipynb`
 
 
 #### Bootstrap Mode (equivalent to Boot. GMM and Boot. Hist. in publication)
 Run 
-* N2V/1_N2VTraining.ipynb
-* N2V/2_N2VPrediction.ipynb
-* PN2V/1b_CreateNoiseModel_Bootstrap.ipynb 
-* PN2V/2_ProbabilisticNoise2VoidTraining.ipynb
-* PN2V/3_ProbabilisticNoise2VoidPrediction.ipynb
+* `N2V/1_N2VTraining.ipynb`
+* `N2V/2_N2VPrediction.ipynb`
+* `PN2V/1b_CreateNoiseModel_Bootstrap.ipynb` 
+* `PN2V/2_ProbabilisticNoise2VoidTraining.ipynb`
+* `PN2V/3_ProbabilisticNoise2VoidPrediction.ipynb`
 
