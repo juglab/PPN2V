@@ -7,7 +7,7 @@ from torch.distributions import normal
 from scipy.stats import norm
 from tifffile import imread
 
-import ..utils as utils
+from ..utils import fastShuffle
 
 
 class GaussianMixtureNoiseModel:
@@ -226,7 +226,7 @@ class GaussianMixtureNoiseModel:
             sig_obs_pairs[stepsize*i:stepsize*(i+1), 0] = signal[j].ravel()
             sig_obs_pairs[stepsize*i:stepsize*(i+1), 1] = observation[i].ravel()
         sig_obs_pairs = sig_obs_pairs[ (sig_obs_pairs[:,0]>lb) & (sig_obs_pairs[:,0]<ub)]
-        return utils.fastShuffle(sig_obs_pairs, 2)
+        return fastShuffle(sig_obs_pairs, 2)
 
     def train(self, signal, observation, learning_rate=1e-1, batchSize=250000, n_epochs=2000, name= 'GMMNoiseModel.npz', lowerClip=0, upperClip=100):
         """Training to learn the noise model from signal - observation pairs.
@@ -260,7 +260,7 @@ class GaussianMixtureNoiseModel:
             jointLoss=0
             if (counter+1)*batchSize >= sig_obs_pairs.shape[0]:
                 counter=0
-                sig_obs_pairs=utils.fastShuffle(sig_obs_pairs,1)
+                sig_obs_pairs=fastShuffle(sig_obs_pairs,1)
 
             batch_vectors = sig_obs_pairs[counter*batchSize:(counter+1)*batchSize, :]
             observations = batch_vectors[:,1].astype(np.float32)
