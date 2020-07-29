@@ -4,7 +4,9 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from collections import OrderedDict
 from torch.nn import init
+from torch.autograd import Variable
 import numpy as np
+
 
 def conv3x3(in_channels, out_channels, stride=1,
             padding=1, bias=True, groups=1):
@@ -16,6 +18,7 @@ def conv3x3(in_channels, out_channels, stride=1,
         padding=padding,
         bias=bias,
         groups=groups)
+
 
 def upconv2x2(in_channels, out_channels, mode='transpose'):
     if mode == 'transpose':
@@ -30,6 +33,7 @@ def upconv2x2(in_channels, out_channels, mode='transpose'):
         return nn.Sequential(
             nn.Upsample(mode='bilinear', scale_factor=2),
             conv1x1(in_channels, out_channels))
+
 
 def conv1x1(in_channels, out_channels, groups=1):
     return nn.Conv2d(
@@ -92,7 +96,6 @@ class UpConv(nn.Module):
             self.conv1 = conv3x3(self.out_channels, self.out_channels)
         self.conv2 = conv3x3(self.out_channels, self.out_channels)
 
-
     def forward(self, from_down, from_up):
         """ Forward pass
         Arguments:
@@ -108,8 +111,6 @@ class UpConv(nn.Module):
         x = F.relu(self.conv2(x))
         return x
 
-
-from torch.autograd import Variable
 
 class UNet(nn.Module):
     """ `UNet` class is based on https://arxiv.org/abs/1505.04597
@@ -181,8 +182,6 @@ class UNet(nn.Module):
 
         self.noiseSTD = nn.Parameter(data=torch.log(torch.tensor(0.5)))
 
-
-
         # create the encoder pathway and add to a list
         for i in range(depth):
             ins = self.in_channels if i == 0 else outs
@@ -215,11 +214,9 @@ class UNet(nn.Module):
             init.xavier_normal(m.weight)
             init.constant(m.bias, 0)
 
-
     def reset_params(self):
         for i, m in enumerate(self.modules()):
             self.weight_init(m)
-
 
     def forward(self, x):
         encoder_outs = []

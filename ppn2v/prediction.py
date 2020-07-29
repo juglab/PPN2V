@@ -5,15 +5,13 @@
 import numpy as np
 import torch
 
-from pn2v.utils import imgToTensor
-from pn2v.utils import denormalize
-from pn2v.utils import normalize
+from .utils import imgToTensor, denormalize, normalize
 
 
 def predict(im, net, noiseModel, device, outScaling):
     '''
     Process an image using our network.
-    
+
     Parameters
     ----------
     im: numpy array
@@ -36,15 +34,15 @@ def predict(im, net, noiseModel, device, outScaling):
     '''
     stdTorch=torch.Tensor(np.array(net.std)).to(device)
     meanTorch=torch.Tensor(np.array(net.mean)).to(device)
-    
+
     #im=(im-net.mean)/net.std
-    
+
     inputs_raw= torch.zeros(1,1,im.shape[0],im.shape[1])
     inputs_raw[0,:,:,:]=imgToTensor(im);
 
     # copy to GPU
     inputs_raw = inputs_raw.to(device)
-    
+
     # normalize
     inputs = (inputs_raw-meanTorch)/stdTorch
 
@@ -52,15 +50,15 @@ def predict(im, net, noiseModel, device, outScaling):
     output=net(inputs)
 
     samples = (output).permute(1, 0, 2, 3)*outScaling #We found that this factor can speed up training
-    
+
     # denormalize
     samples = samples * stdTorch + meanTorch
     means = torch.mean(samples,dim=0,keepdim=True)[0,...] # Sum up over all samples
     means=means.cpu().detach().numpy()
     means.shape=(output.shape[2],output.shape[3])
-    
+
     if noiseModel is not None:
-        
+
         # call likelihood using denormalized observations and samples
         likelihoods=noiseModel.likelihood(inputs_raw ,samples )
 
@@ -72,7 +70,7 @@ def predict(im, net, noiseModel, device, outScaling):
         mseEst=mseEst.cpu().detach().numpy()
         mseEst.shape=(output.shape[2],output.shape[3])
         return means,mseEst
-    
+
     else:
         return means, None
 
@@ -81,7 +79,7 @@ def tiledPredict(im, net, ps, overlap, noiseModel, device, pad=False, outScaling
     '''
     Tile the image to save GPU memory.
     Process it using our network.
-    
+
     Parameters
     ----------
     im: numpy array
@@ -103,7 +101,7 @@ def tiledPredict(im, net, ps, overlap, noiseModel, device, pad=False, outScaling
         If True : We use padding for the last patch in each row/column.
         If False: (default) The last patch in each row/column is aligned to the right/bottom border of the image.
                   This might have the potential to cause discontinuities.
-    
+
     Returns
     ----------
     means: numpy array
@@ -116,8 +114,8 @@ def tiledPredict(im, net, ps, overlap, noiseModel, device, pad=False, outScaling
     if pad:
         return tiledPredict_pad(im, net, ps, overlap, noiseModel, device, outScaling)
     else:
-        return tiledPredict_reflect(im, net, ps, overlap, noiseModel, device, outScaling)    
-    
+        return tiledPredict_reflect(im, net, ps, overlap, noiseModel, device, outScaling)
+
 
 def tiledPredict_pad(im, net, ps, overlap, noiseModel, device, outScaling=10.0):
     '''
@@ -125,7 +123,7 @@ def tiledPredict_pad(im, net, ps, overlap, noiseModel, device, outScaling=10.0):
     Process it using our network.
     We use padding for the last patch in each row/column.
 
-    
+
     Parameters
     ----------
     im: numpy array
@@ -142,7 +140,7 @@ def tiledPredict_pad(im, net, ps, overlap, noiseModel, device, outScaling=10.0):
         The device your network lives on, e.g. your GPU
     outScaling: float
         We found that scaling the output by a factor (default=10) helps to speedup training.
-        
+
     Returns
     ----------
     means: numpy array
@@ -152,7 +150,7 @@ def tiledPredict_pad(im, net, ps, overlap, noiseModel, device, outScaling=10.0):
         Image containing the MMSE prediction, computed using the prior and noise model.
         Will be only returned if a noise model is provided
     '''
-    
+
     means=np.zeros(im.shape)
     if noiseModel is not None:
         mseEst=np.zeros(im.shape)
@@ -168,15 +166,15 @@ def tiledPredict_pad(im, net, ps, overlap, noiseModel, device, outScaling=10.0):
             inputPatch=im[ymin:ymax,xmin:xmax]
             padX=ps-inputPatch.shape[1]
             padY=ps-inputPatch.shape[0]
-             
+
             inputPatch=np.pad(inputPatch,((0, padY),(0,padX)), 'constant', constant_values=(net.mean,net.mean) )
-            #inputPatch=np.pad(inputPatch,((0, padY),(0,padX)), 'reflect')     
-            a,b = predict(inputPatch, net, noiseModel, device, outScaling=outScaling)       
-            a=a[:a.shape[0]-padY, :a.shape[1]-padX] 
+            #inputPatch=np.pad(inputPatch,((0, padY),(0,padX)), 'reflect')
+            a,b = predict(inputPatch, net, noiseModel, device, outScaling=outScaling)
+            a=a[:a.shape[0]-padY, :a.shape[1]-padX]
 
             means[ymin:ymax,xmin:xmax][ovTop:,ovLeft:] = a[ovTop:,ovLeft:]
             if noiseModel is not None:
-                b=b[:b.shape[0]-padY, :b.shape[1]-padX] 
+                b=b[:b.shape[0]-padY, :b.shape[1]-padX]
 
                 mseEst[ymin:ymax,xmin:xmax][ovTop:,ovLeft:] = b[ovTop:,ovLeft:]
             ymin=ymin-overlap+ps
@@ -187,19 +185,19 @@ def tiledPredict_pad(im, net, ps, overlap, noiseModel, device, outScaling=10.0):
         xmin=xmin-overlap+ps
         xmax=xmin+ps
         ovLeft=overlap//2
-        
-    if noiseModel is not None:   
+
+    if noiseModel is not None:
         return means, mseEst
     else:
         return means
-    
+
 def tiledPredict_reflect(im, net, ps, overlap, noiseModel, device, outScaling=10.0):
     '''
     Tile the image to save GPU memory.
     Process it using our network.
     The last patch in each row/column is aligned to the right/bottom border of the image.
     This might have the potential to cause discontinuities.
-    
+
     Parameters
     ----------
     im: numpy array
@@ -216,7 +214,7 @@ def tiledPredict_reflect(im, net, ps, overlap, noiseModel, device, outScaling=10
         The device your network lives on, e.g. your GPU
     outScaling: float
         We found that scaling the output by a factor (default=10) helps to speedup training.
-        
+
     Returns
     ----------
     means: numpy array
@@ -226,7 +224,7 @@ def tiledPredict_reflect(im, net, ps, overlap, noiseModel, device, outScaling=10
         Image containing the MMSE prediction, computed using the prior and noise model.
         Will be only returned if a noise model is provided
     '''
-    
+
     means=np.zeros(im.shape)
     if noiseModel is not None:
         mseEst=np.zeros(im.shape)
@@ -241,7 +239,7 @@ def tiledPredict_reflect(im, net, ps, overlap, noiseModel, device, outScaling=10
             ymin_ = min(im.shape[0], ymax)-ps
             xmin_ = min(im.shape[1], xmax)-ps
             lastPatchShiftY = ymin-ymin_
-            lastPatchShiftX = xmin-xmin_  
+            lastPatchShiftX = xmin-xmin_
             a,b = predict(im[ymin_:ymax,xmin_:xmax], net, noiseModel, device, outScaling=outScaling)
             means[ymin:ymax,xmin:xmax][ovTop:,ovLeft:] = a[lastPatchShiftY:,lastPatchShiftX:][ovTop:,ovLeft:]
             if noiseModel is not None:
@@ -254,8 +252,8 @@ def tiledPredict_reflect(im, net, ps, overlap, noiseModel, device, outScaling=10
         xmin=xmin-overlap+ps
         xmax=xmin+ps
         ovLeft=overlap//2
-        
-    if noiseModel is not None:   
+
+    if noiseModel is not None:
         return means, mseEst
     else:
         return means
