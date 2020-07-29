@@ -7,8 +7,8 @@ from torch.distributions import normal
 from scipy.stats import norm
 from tifffile import imread
 
-import pn2v.utils as utils
-import pn2v.histNoiseModel
+import ..utils as utils
+
 
 class GaussianMixtureNoiseModel:
     """The GaussianMixtureNoiseModel class describes a noise model which is parameterized as a mixture of gaussians.
@@ -39,7 +39,7 @@ class GaussianMixtureNoiseModel:
                 min_sigma: int
                     All values of sigma (`standard deviation`) below min_sigma are clamped to become equal to min_sigma.
                 params: dictionary
-                    Use `params` if one wishes to load a model with trained weights. 
+                    Use `params` if one wishes to load a model with trained weights.
                     While initializing a new object of the class `GaussianMixtureNoiseModel` from scratch, set this to `None`.
 
             Example
@@ -79,9 +79,6 @@ class GaussianMixtureNoiseModel:
             self.n_coeff=self.weight.shape[1]
             self.tol=torch.Tensor([1e-10]).to(self.device)
 
-    
-
-
     def polynomialRegressor(self, weightParams, signals):
         """Combines `weightParams` and signal `signals` to regress for the gaussian parameter values.
 
@@ -101,8 +98,7 @@ class GaussianMixtureNoiseModel:
         for i in range(weightParams.shape[0]):
             value += weightParams[i] * (((signals - self.min_signal) / (self.max_signal - self.min_signal)) ** i);
         return value
-        
-   
+
     def normalDens(self, x, m_= 0.0, std_= None):
         """Evaluates the normal probability density at `x` given the mean `m` and standard deviation `std`.
 
@@ -121,7 +117,7 @@ class GaussianMixtureNoiseModel:
 
         """
 
-        tmp=-((x-m_)**2) 
+        tmp=-((x-m_)**2)
         tmp=tmp / (2.0*std_*std_)
         tmp= torch.exp(tmp )
         tmp= tmp/ torch.sqrt( (2.0*np.pi)*std_*std_)
@@ -148,7 +144,7 @@ class GaussianMixtureNoiseModel:
             p+=self.normalDens(observations, gaussianParameters[gaussian],
                                gaussianParameters[self.n_gaussian+gaussian])*gaussianParameters[2*self.n_gaussian+gaussian]
         return p+self.tol
-    
+
     def getGaussianParameters(self, signals):
         """Returns the noise model for given signals
 
@@ -169,7 +165,7 @@ class GaussianMixtureNoiseModel:
         kernels = self.weight.shape[0]//3
         for num in range(kernels):
             mu.append(self.polynomialRegressor(self.weight[num, :], signals))
-            
+
             sigmaTemp=self.polynomialRegressor(torch.exp(self.weight[kernels+num, :]), signals)
             sigmaTemp = torch.clamp(sigmaTemp, min = self.min_sigma)
             sigma.append(torch.sqrt(sigmaTemp))
@@ -180,7 +176,7 @@ class GaussianMixtureNoiseModel:
             sum_alpha = alpha[al]+sum_alpha
         for ker in range(kernels):
             alpha[ker]=alpha[ker]/sum_alpha
-            
+
         sum_means = 0
         for ker in range(kernels):
             sum_means = alpha[ker]*mu[ker]+sum_means
@@ -188,7 +184,7 @@ class GaussianMixtureNoiseModel:
         mu_shifted=[]
         for ker in range(kernels):
             mu[ker] = mu[ker] - sum_means + signals
-        
+
         for i in range(kernels):
             noiseModel.append(mu[i])
         for j in range(kernels):
@@ -197,7 +193,7 @@ class GaussianMixtureNoiseModel:
             noiseModel.append(alpha[k])
 
         return noiseModel
-    
+
     def getSignalObservationPairs(self, signal, observation, lowerClip, upperClip):
         """Returns the Signal-Observation pixel intensities as a two-column array
 
@@ -224,15 +220,13 @@ class GaussianMixtureNoiseModel:
         n_observations=observation.shape[0]
         n_signals=signal.shape[0]
         sig_obs_pairs= np.zeros((n_observations*stepsize,2))
-        
+
         for i in range(n_observations):
             j = i//(n_observations//n_signals)
             sig_obs_pairs[stepsize*i:stepsize*(i+1), 0] = signal[j].ravel()
             sig_obs_pairs[stepsize*i:stepsize*(i+1), 1] = observation[i].ravel()
         sig_obs_pairs = sig_obs_pairs[ (sig_obs_pairs[:,0]>lb) & (sig_obs_pairs[:,0]<ub)]
-        return pn2v.utils.fastShuffle(sig_obs_pairs, 2)
-        
-  
+        return utils.fastShuffle(sig_obs_pairs, 2)
 
     def train(self, signal, observation, learning_rate=1e-1, batchSize=250000, n_epochs=2000, name= 'GMMNoiseModel.npz', lowerClip=0, upperClip=100):
         """Training to learn the noise model from signal - observation pairs.
@@ -257,8 +251,6 @@ class GaussianMixtureNoiseModel:
                     Lower percentile for clipping. Default is 0.
                 upperClip : int
                     Upper percentile for clipping. Default is 100.
-                    
-                    
         """
         sig_obs_pairs=self.getSignalObservationPairs(signal, observation, lowerClip, upperClip)
         counter=0
@@ -278,10 +270,10 @@ class GaussianMixtureNoiseModel:
             p = self.likelihood(observations, signals)
             loss=torch.mean(-torch.log(p))
             jointLoss=jointLoss+loss
-            
+
             if t%100==0:
                 print(t, jointLoss.item())
-                
+
 
             if (t%(int(n_epochs*0.5))==0):
                 trained_weight = self.weight.cpu().detach().numpy()
@@ -289,15 +281,10 @@ class GaussianMixtureNoiseModel:
                 max_signal = self.max_signal.cpu().detach().numpy()
                 np.savez(self.path+name, trained_weight=trained_weight, min_signal = min_signal, max_signal = max_signal, min_sigma = self.min_sigma)
 
-                
-            
-
             optimizer.zero_grad()
             jointLoss.backward()
             optimizer.step()
             counter+=1
 
-        print("===================\n")    
+        print("===================\n")
         print("The trained parameters (" + name + ") is saved at location: "+ self.path)
-
-
