@@ -1,4 +1,5 @@
 import torch
+import os
 dtype = torch.float
 import matplotlib.pyplot as plt
 import numpy as np
@@ -279,7 +280,10 @@ class GaussianMixtureNoiseModel:
                 trained_weight = self.weight.cpu().detach().numpy()
                 min_signal = self.min_signal.cpu().detach().numpy()
                 max_signal = self.max_signal.cpu().detach().numpy()
-                np.savez(self.path+name, trained_weight=trained_weight, min_signal = min_signal, max_signal = max_signal, min_sigma = self.min_sigma)
+                np.savez(os.path.join(self.path, name), 
+                         trained_weight=trained_weight, 
+                         min_signal=min_signal, max_signal=max_signal, 
+                         min_sigma=self.min_sigma)
 
             optimizer.zero_grad()
             jointLoss.backward()
