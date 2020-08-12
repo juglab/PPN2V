@@ -411,7 +411,7 @@ def trainNetwork(net, trainData, valData, noiseModel, postfix, device,
             valHist.append(avgValLoss)
             scheduler.step(avgValLoss)
             epoch= (stepCounter / stepsPerEpoch)
-            np.save(os.path.join(directory,"history"+postfix+".npy"), (np.array( [np.arange(epoch),trainHist,valHist ] ) ) )
+            np.save(os.path.join(directory,"history_"+postfix+".npy"), (np.array( [np.arange(epoch),trainHist,valHist ] ) ) )
 
     printNow('Finished Training')
     return trainHist, valHist
