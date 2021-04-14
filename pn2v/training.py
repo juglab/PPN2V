@@ -132,8 +132,8 @@ def randomCrop(img, size, numPix, imgClean=None, augment=True, manipulate=True):
     assert img.shape[0] >= size
     assert img.shape[1] >= size
 
-    x = np.random.randint(0, img.shape[1] - size)
-    y = np.random.randint(0, img.shape[0] - size)
+    x = np.random.randint(0, img.shape[1] - size + 1)
+    y = np.random.randint(0, img.shape[0] - size + 1)
 
     imgOut = img[y:y+size, x:x+size].copy()
     imgOutC= imgClean[y:y+size, x:x+size].copy()
