@@ -1,14 +1,8 @@
 import torch.optim as optim
 import os
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable
-from collections import OrderedDict
-from torch.nn import init
+
 import numpy as np
-import matplotlib.pyplot as plt
-import torchvision
 
 from .utils import *
 

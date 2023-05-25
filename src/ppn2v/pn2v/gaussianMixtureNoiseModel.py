@@ -1,11 +1,7 @@
 import torch
 dtype = torch.float
-import matplotlib.pyplot as plt
+
 import numpy as np
-import pickle
-from torch.distributions import normal
-from scipy.stats import norm
-from tifffile import imread
 
 import pn2v.utils as utils
 import pn2v.histNoiseModel
