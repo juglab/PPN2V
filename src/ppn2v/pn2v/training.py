@@ -4,8 +4,7 @@ import torch
 
 import numpy as np
 
-from .utils import *
-
+from . import utils
 
 ############################################
 #   Training the network
