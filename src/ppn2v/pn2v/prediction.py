@@ -5,9 +5,9 @@
 import numpy as np
 import torch
 
-from pn2v.utils import imgToTensor
-from pn2v.utils import denormalize
-from pn2v.utils import normalize
+from .utils import imgToTensor
+from .utils import denormalize
+from .utils import normalize
 
 
 def predict(im, net, noiseModel, device, outScaling):

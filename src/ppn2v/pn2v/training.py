@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torchvision
 
-from pn2v import utils
+from .utils import *
 
 
 ############################################
