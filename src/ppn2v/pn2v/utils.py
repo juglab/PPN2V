@@ -2,10 +2,7 @@
 #   Utility Functions
 ############################################
 
-import torch.optim as optim
-import os
 import torch
-import torch.nn as nn
 import sys
 import torchvision
 import numpy as np

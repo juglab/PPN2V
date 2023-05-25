@@ -1,14 +1,9 @@
 import torch
 dtype = torch.float
-import matplotlib.pyplot as plt
-import numpy as np
-import pickle
-from torch.distributions import normal
-from scipy.stats import norm
-from tifffile import imread
 
-import pn2v.utils as utils
-import pn2v.histNoiseModel
+import numpy as np
+
+from .utils import fastShuffle
 
 class GaussianMixtureNoiseModel:
     """The GaussianMixtureNoiseModel class describes a noise model which is parameterized as a mixture of gaussians.
@@ -230,7 +225,7 @@ class GaussianMixtureNoiseModel:
             sig_obs_pairs[stepsize*i:stepsize*(i+1), 0] = signal[j].ravel()
             sig_obs_pairs[stepsize*i:stepsize*(i+1), 1] = observation[i].ravel()
         sig_obs_pairs = sig_obs_pairs[ (sig_obs_pairs[:,0]>lb) & (sig_obs_pairs[:,0]<ub)]
-        return pn2v.utils.fastShuffle(sig_obs_pairs, 2)
+        return fastShuffle(sig_obs_pairs, 2)
         
   
 
@@ -268,7 +263,7 @@ class GaussianMixtureNoiseModel:
             jointLoss=0
             if (counter+1)*batchSize >= sig_obs_pairs.shape[0]:
                 counter=0
-                sig_obs_pairs=utils.fastShuffle(sig_obs_pairs,1)
+                sig_obs_pairs=fastShuffle(sig_obs_pairs,1)
 
             batch_vectors = sig_obs_pairs[counter*batchSize:(counter+1)*batchSize, :]
             observations = batch_vectors[:,1].astype(np.float32)

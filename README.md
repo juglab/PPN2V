@@ -16,6 +16,21 @@ We next explored the question of avoiding using any calibration data and to go *
 
 We hope to soon merge this repository with the existing repository for `PN2V`, which is currently available [here](https://github.com/juglab/PN2V).
 
+### Conda environment
+
+In order to run the notebooks, set-up the environment using `torch_ppn2v.yml` or follow these steps:
+
+```bash
+conda create -n ppn2v python=3.9
+conda activate ppn2v
+conda install pytorch torchvision pytorch-cuda=11.8 'numpy<1.24' scipy matplotlib tifffile jupyter -c pytorch -c nvidia
+pip install git+https://github.com/juglab/PPN2V.git
+```
+
+Note that this was validated on Linux machines only. For macOS or Windows, 
+please refer to the [PyTorch website](https://pytorch.org/get-started/locally/)
+to adapt the aforementioned steps.
+
 ### Citation
 If you find our work useful in your research, please consider citing:
 
