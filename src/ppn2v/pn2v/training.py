@@ -1,6 +1,7 @@
 import torch.optim as optim
 import os
 import torch
+import time
 
 import numpy as np
 
@@ -350,7 +351,10 @@ def trainNetwork(net, trainData, valData, noiseModel, postfix, device,
         
     pn2v= (noiseModel is not None) and (not supervised)
     
+    print("Start training")
+    start = time.time()
     while stepCounter / stepsPerEpoch < numOfEpochs:  # loop over the dataset multiple times
+
         losses=[]
         optimizer.zero_grad()
         stepCounter+=1
@@ -373,12 +377,22 @@ def trainNetwork(net, trainData, valData, noiseModel, postfix, device,
 
         optimizer.step()
 
+        if stepCounter % 100 == 9:
+            utils.printNow(f"Finished step {stepCounter}/{stepsPerEpoch}")
+
         # We have reached the end of an epoch
         if stepCounter % stepsPerEpoch == stepsPerEpoch-1:
             running_loss=(np.mean(losses))
             losses=np.array(losses)
             utils.printNow("Epoch "+str(int(stepCounter / stepsPerEpoch))+" finished")
             utils.printNow("avg. loss: "+str(np.mean(losses))+"+-(2SEM)"+str(2.0*np.std(losses)/np.sqrt(losses.size)))
+
+            # timing
+            end = time.time()
+            t_epoch = (end- start) / 60 # in min
+            utils.printNow("Epoch time: "+str(t_epoch)+" min")
+            start = end
+
             trainHist.append(np.mean(losses))
             losses=[]
             torch.save(net,os.path.join(directory,"last_"+postfix+".net"))
@@ -406,6 +420,7 @@ def trainNetwork(net, trainData, valData, noiseModel, postfix, device,
             scheduler.step(avgValLoss)
             epoch= (stepCounter / stepsPerEpoch)
             np.save(os.path.join(directory,"history"+postfix+".npy"), (np.array( [np.arange(epoch),trainHist,valHist ] ) ) )
+
 
     utils.printNow('Finished Training')
     return trainHist, valHist
