@@ -378,7 +378,7 @@ def trainNetwork(net, trainData, valData, noiseModel, postfix, device,
         optimizer.step()
 
         if stepCounter % 100 == 9:
-            print(f"Finished step {stepCounter}/{stepsPerEpoch}")
+            utils.printNow(f"Finished step {stepCounter}/{stepsPerEpoch}")
 
         # We have reached the end of an epoch
         if stepCounter % stepsPerEpoch == stepsPerEpoch-1:
