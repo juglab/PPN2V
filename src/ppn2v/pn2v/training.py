@@ -350,6 +350,7 @@ def trainNetwork(net, trainData, valData, noiseModel, postfix, device,
         
     pn2v= (noiseModel is not None) and (not supervised)
     
+    print("Start training")
     while stepCounter / stepsPerEpoch < numOfEpochs:  # loop over the dataset multiple times
         losses=[]
         optimizer.zero_grad()
@@ -372,6 +373,9 @@ def trainNetwork(net, trainData, valData, noiseModel, postfix, device,
             losses.append(loss.item())
 
         optimizer.step()
+
+        if stepCounter % 10 == 9:
+            print(f"Finished step {stepCounter}/{stepsPerEpoch}")
 
         # We have reached the end of an epoch
         if stepCounter % stepsPerEpoch == stepsPerEpoch-1:
