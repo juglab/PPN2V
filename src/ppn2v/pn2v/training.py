@@ -1,6 +1,7 @@
 import torch.optim as optim
 import os
 import torch
+import time
 
 import numpy as np
 
@@ -351,7 +352,9 @@ def trainNetwork(net, trainData, valData, noiseModel, postfix, device,
     pn2v= (noiseModel is not None) and (not supervised)
     
     print("Start training")
+    start = time.time()
     while stepCounter / stepsPerEpoch < numOfEpochs:  # loop over the dataset multiple times
+
         losses=[]
         optimizer.zero_grad()
         stepCounter+=1
@@ -375,7 +378,10 @@ def trainNetwork(net, trainData, valData, noiseModel, postfix, device,
         optimizer.step()
 
         if stepCounter % 10 == 9:
-            print(f"Finished step {stepCounter}/{stepsPerEpoch}")
+            end = time.time()
+            avg = (end- start) / 10
+            start = end
+            print(f"Finished step {stepCounter}/{stepsPerEpoch} in {avg} seconds")
 
         # We have reached the end of an epoch
         if stepCounter % stepsPerEpoch == stepsPerEpoch-1:
